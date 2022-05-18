@@ -1,7 +1,9 @@
 import Header from "./Header";
+import AddItem from "./AddItem";
 import Content from "./Content";
 import Footer from "./Footer";
 import {useState} from "react";
+import SearchItem from "./SearchItem";
 
 //Return function returns JSX
 //Title becomes a prop, rule 14
@@ -10,44 +12,66 @@ import {useState} from "react";
 
 function App() {
 
-    const [items, setItems] = useState([
-        {
-            id: 1,
-            checked: true,
-            item: "One half bag of almonds"
-        },
-        {
-            id: 2,
+    const [items, setItems] = useState(JSON.parse(localStorage.getItem("shoppinglist")));
+    const [newItem, setNewItem] = useState("");
+    //2 (after making search component)setting state for search
+    const [search, setSearch] = useState("");
+
+    const setAndSaveItems = (newItems) => {
+        setItems(newItems);
+        localStorage.setItem("shoppinglist", JSON.stringify(newItems));
+    };
+
+    const addItem = (item) => {
+        const id = items.length ? items[items.length - 1].id + 1 : 1;
+        const myNewItem = {
+            id: id,
             checked: false,
-            item: "Item 2"
-        },
-        {
-            id: 3,
-            checked: false,
-            item: "Item 3"
-        }
-    ]);
+            item: item
+        };
+        //spread operator
+        const listItems = [...items, myNewItem];
+        setAndSaveItems(listItems);
+
+    }
+
 
     const handleCheck = (id) => {
         const listItems = items.map((item) => item.id === id ?
             {...item, checked: !item.checked} : item);
-        setItems(listItems);
-        localStorage.setItem('shoppinglist', JSON.stringify(listItems));
+        setAndSaveItems(listItems);
     };
 
     const handleDelete = (id) => {
         const listItems = items.filter((item) => item.id !== id);
-        setItems(listItems);
-        localStorage.setItem('shoppinglist', JSON.stringify(listItems));
+        setAndSaveItems(listItems);
     };
 
+    const handleSubmit = (event) => {
+        event.preventDefault();
+        if (!newItem) return;
+        addItem(newItem);
+        setNewItem("");
+    };
 
+    //3) Below add search item
+    //4) Define props for search item
+    //5) Add filter to item
 
   return (
     <div className="App">
       <Header title="Grocery list man"/>
+        <AddItem
+        newItem={newItem}
+        setNewItem={setNewItem}
+        handleSubmit={handleSubmit}
+        />
+        <SearchItem
+            search={search}
+            setSearch={setSearch}
+        />
       <Content
-          items={items}
+          items={items.filter((item) => item.item.toLowerCase().includes(search.toLowerCase()))}
           handleCheck={handleCheck}
           handleDelete={handleDelete}
       />
